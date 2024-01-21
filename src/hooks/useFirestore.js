@@ -1,4 +1,4 @@
-import React, { useReducer, useEffect, useState } from "react";
+import { useReducer, useEffect, useState } from "react";
 import {
   collection,
   addDoc,
@@ -154,6 +154,23 @@ export const useFirestore = (coll) => {
     }
   };
 
+  const addSubDocument = async (docId, subcoll, data) => {
+    dispatch({ type: "IS_PENDING" });
+    try {
+      const createdAt = timestamp;
+      const subcollRef = collection(db, `${coll}/${docId}/${subcoll}`);
+      const addedSubDocument = await addDoc(subcollRef, { ...data, createdAt });
+      dispatchIfNotCancelled({
+        type: "ADDED_DOCUMENT",
+        payload: addedSubDocument,
+      });
+      return { type: "SUCCESS", payload: addedSubDocument.id };
+    } catch (err) {
+      dispatchIfNotCancelled({ type: "ERROR", payload: err.message });
+      return { type: "ERROR", payload: err.message };
+    }
+  };
+
   useEffect(() => () => setIsCancelled(true), []);
 
   return {
@@ -161,6 +178,7 @@ export const useFirestore = (coll) => {
     deleteDocument,
     createDocument,
     updateDocument,
+    addSubDocument,
     response,
     serverTimestamp,
   };

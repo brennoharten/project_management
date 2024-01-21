@@ -19,8 +19,9 @@ import {
 	AvatarFallback,
 	AvatarImage,
 } from "../shadcn/components/ui/avatar";
-import { useAuthContext } from "..//hooks/useAuthContext";
+import { useAuthContext } from "../hooks/useAuthContext";
 import LabelSvg from "./Label";
+import getInitials from "../utils/getInitials";
 
 const userOptions = [
 	{
@@ -91,8 +92,8 @@ export default function Sidebar() {
 			</div>
 			<div className="flex p-5 gap-3">
 				<Avatar>
-					<AvatarImage src="https://github.com/shadcn.png" />
-					<AvatarFallback className="bg-primary/50">CN</AvatarFallback>
+					<AvatarImage src=""/>
+					<AvatarFallback className="bg-primary/50">{getInitials(user.displayName)}</AvatarFallback>
 				</Avatar>
 				<div>
 					<p className="font-medium">{user.displayName}</p>
@@ -127,6 +128,7 @@ export default function Sidebar() {
 				</div>
 			))}
 			<Separator className="my-4" />
+			<h2 className="font-semibold text-xl px-5 mb-5">Tags</h2>
 			{labelOptions.map((option) => (
 				<div
 					key={option.route}

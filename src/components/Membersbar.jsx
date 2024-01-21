@@ -13,20 +13,20 @@ function MemberSkeleton() {
 	);
 }
 
-export default function Membersbar({ chats, setChatIsOpen, setSelectedChat }) {
-	const { documents: users } = useCollection("users");
+export default function Membersbar({ chats, setChatIsOpen, setSelectedChat, users }) {
 	const { user } = useAuthContext();
 
-	const openChat = (uesrId, userName) => {
+	const openChat = (userId, userName) => {
 		const chat = chats.find(
 			(chat) =>
-				chat.participants.includes(uesrId) &&
+				chat.participants.includes(userId) &&
 				chat.participants.includes(user.uid)
 		);
 		setChatIsOpen(true);
 		setSelectedChat({
-			id: chat.id,
+			id: chat?.id,
 			recipient: userName,
+			participants:  [userId, user.uid]
 		});
 		//TODO: essa função irá abrir o chat com o usuario com o id userID
 	};
@@ -49,7 +49,7 @@ export default function Membersbar({ chats, setChatIsOpen, setSelectedChat }) {
 		<aside className="h-screen w-[200px] border border-border p-5">
 			<h2 className="font-medium text-lg mb-5">Membros</h2>
 			{sortedUsers
-				? sortedUsers.map((user) => (
+				? sortedUsers.filter(u => u.id !== user.uid).map((user) => (
 						<div
 							key={user.id}
 							className="flex items-center gap-2 text-sm py-2.5"
