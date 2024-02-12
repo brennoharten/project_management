@@ -80,7 +80,7 @@ const labelOptions = [
 	},
 ];
 
-export default function Sidebar() {
+export default function Sidebar(rerender) {
 	const navigate = useNavigate();
 	const { logout, isPanding, error } = useLogout();
 	const { user } = useAuthContext();
@@ -92,7 +92,7 @@ export default function Sidebar() {
 			</div>
 			<div className="flex p-5 gap-3">
 				<Avatar>
-					<AvatarImage src=""/>
+					<AvatarImage src={user.photoURL}/>
 					<AvatarFallback className="bg-primary/50">{getInitials(user.displayName)}</AvatarFallback>
 				</Avatar>
 				<div>
@@ -156,6 +156,7 @@ export default function Sidebar() {
 					Sair da conta
 				</Button>
 			</div>
+			{rerender && <span className="hidden"></span>}
 		</nav>
 	);
 }
