@@ -21,9 +21,8 @@ import { PlusCircledIcon } from "@radix-ui/react-icons";
 import { useFirestore } from "../../hooks/useFirestore";
 import { arrayUnion } from "firebase/firestore";
 import { useToast } from "../../shadcn/components/ui/use-toast";
-/* 
 import { useUserContext } from "../../hooks/useUserContext";
-import { useUsersContext } from "../../hooks/useUsersContext"; */
+import { useUsersContext } from "../../hooks/useUsersContext";
 
 const priorityOptions = [
   { value: "low", label: "Baixa" },
@@ -33,12 +32,13 @@ const priorityOptions = [
 ];
 
 export default function NewTaskDialog({ children /* open, setOpen */ }) {
-  const {documents: users} = useCollection("users")
+  const { userDoc } = useUserContext();
+  const { users } = useUsersContext();
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState(null);
   const [description, setDescription] = useState("");
-  //const { document: teamDoc } = useDocument("teams", userDoc.teamId);
-  const { document: teamDoc } = useDocument("teams", "1e2jbG3utoQR8KpNbddG");
+  const { document: teamDoc } = useDocument("teams", userDoc.teamId);
+  //const { document: teamDoc } = useDocument("teams", "1e2jbG3utoQR8KpNbddG");
   const [assignedMembers, setAssignedMembers] = useState([]);
 
   const userOptions = users?.map((user) => ({
@@ -72,9 +72,8 @@ export default function NewTaskDialog({ children /* open, setOpen */ }) {
   };
 
 
+  
   /* 
-  const { userDoc } = useUserContext();
-  const { users } = useUsersContext();
 
 
 
