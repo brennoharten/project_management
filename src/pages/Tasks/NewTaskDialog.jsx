@@ -1,4 +1,4 @@
-/* import {
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -15,13 +15,14 @@ import { useState } from "react";
 import { Textarea } from "../../shadcn/components/ui/textarea";
 import { DatePickerWithPresets } from "../../components/DatePickerWithPresets";
 import Select from "react-select";
-import { useFirestore } from "../../hooks/useFirestore";
+import { useCollection } from "../../hooks/useCollection";
+/* import { useFirestore } from "../../hooks/useFirestore";
 import { useDocument } from "../../hooks/useDocument";
 import { PlusCircledIcon } from "@radix-ui/react-icons";
 import { arrayUnion } from "firebase/firestore";
 import { useToast } from "../../shadcn/components/ui/use-toast";
 import { useUserContext } from "../../hooks/useUserContext";
-import { useUsersContext } from "../../hooks/useUsersContext";
+import { useUsersContext } from "../../hooks/useUsersContext"; */
 
 const priorityOptions = [
   { value: "low", label: "Baixa" },
@@ -30,27 +31,31 @@ const priorityOptions = [
   { value: "standby", label: "Em standby" },
 ];
 
-export default function NewTaskDialog({ children, open, setOpen }) {
-  const { addSubDocument: addTask } = useFirestore("teams");
+export default function NewTaskDialog({ children /* open, setOpen */ }) {
+  const {documents: users} = useCollection("users")
+  const [title, setTitle] = useState("");
+  const [dueDate, setDueDate] = useState(null);
+  const [description, setDescription] = useState("");
+
+  const userOptions = users?.map((user) => ({
+    value: user.id,
+    label: user.name,
+  }));
+
+
+  /* const { addSubDocument: addTask } = useFirestore("teams");
   const { toast } = useToast();
   const { userDoc } = useUserContext();
   const { users } = useUsersContext();
   const { document: teamDoc } = useDocument("teams", userDoc.teamId);
   const { updateDocument: updateTeam } = useFirestore("teams");
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
   const [selectedTags, setSelectedTags] = useState([]);
-  const [dueDate, setDueDate] = useState(null);
   const [priority, setPriority] = useState("");
   const [assignedMembers, setAssignedMembers] = useState([]);
   const [newTag, setNewTag] = useState("");
   const [showNewTagForm, setShowNewTagForm] = useState(false);
   const selectedColumn = localStorage.getItem("selectedColumn") || "backlog";
 
-  const userOptions = users?.map((user) => ({
-    value: user.id,
-    label: user.name,
-  }));
 
   const tagOptions = teamDoc?.tags?.map((tag) => ({ value: tag, label: tag }));
 
@@ -122,10 +127,10 @@ export default function NewTaskDialog({ children, open, setOpen }) {
     setDueDate(null);
     setAssignedMembers([]);
     setOpen(false);
-  };
+  }; */
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog /* open={open} onOpenChange={setOpen} */>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -153,7 +158,7 @@ export default function NewTaskDialog({ children, open, setOpen }) {
               className="h-32 resize-none"
             />
           </div>
-          <div className="flex flex-col gap-1.5">
+          {/* <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2">
               <Label htmlFor="name">Tags</Label>
               <PlusCircledIcon
@@ -177,7 +182,7 @@ export default function NewTaskDialog({ children, open, setOpen }) {
               options={tagOptions}
               onChange={(options) => setSelectedTags(options)}
             />
-          </div>
+          </div> */}
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="name">Data para conclusão</Label>
             <DatePickerWithPresets date={dueDate} setDate={setDueDate} />
@@ -197,9 +202,9 @@ export default function NewTaskDialog({ children, open, setOpen }) {
               onChange={(options) => setAssignedMembers(options)}
             />
           </div>
-        </div>
+        </div> 
         <DialogFooter>
-          <Button type="submit" onClick={createTask}>
+          <Button type="submit" /* onClick={createTask} */>
             Adicionar tarefa
           </Button>
         </DialogFooter>
@@ -207,4 +212,3 @@ export default function NewTaskDialog({ children, open, setOpen }) {
     </Dialog>
   );
 }
- */
