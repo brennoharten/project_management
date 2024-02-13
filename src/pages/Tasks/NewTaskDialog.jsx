@@ -16,11 +16,12 @@ import { Textarea } from "../../shadcn/components/ui/textarea";
 import { DatePickerWithPresets } from "../../components/DatePickerWithPresets";
 import Select from "react-select";
 import { useCollection } from "../../hooks/useCollection";
-/* import { useFirestore } from "../../hooks/useFirestore";
 import { useDocument } from "../../hooks/useDocument";
 import { PlusCircledIcon } from "@radix-ui/react-icons";
+import { useFirestore } from "../../hooks/useFirestore";
 import { arrayUnion } from "firebase/firestore";
 import { useToast } from "../../shadcn/components/ui/use-toast";
+/* 
 import { useUserContext } from "../../hooks/useUserContext";
 import { useUsersContext } from "../../hooks/useUsersContext"; */
 
@@ -36,42 +37,47 @@ export default function NewTaskDialog({ children /* open, setOpen */ }) {
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState(null);
   const [description, setDescription] = useState("");
+  //const { document: teamDoc } = useDocument("teams", userDoc.teamId);
+  const { document: teamDoc } = useDocument("teams", "1e2jbG3utoQR8KpNbddG");
+  const [assignedMembers, setAssignedMembers] = useState([]);
 
   const userOptions = users?.map((user) => ({
     value: user.id,
     label: user.name,
   }));
-
-
-  /* const { addSubDocument: addTask } = useFirestore("teams");
+  
   const { toast } = useToast();
-  const { userDoc } = useUserContext();
-  const { users } = useUsersContext();
-  const { document: teamDoc } = useDocument("teams", userDoc.teamId);
-  const { updateDocument: updateTeam } = useFirestore("teams");
+  const tagOptions = teamDoc?.tags?.map((tag) => ({ value: tag, label: tag }));
   const [selectedTags, setSelectedTags] = useState([]);
   const [priority, setPriority] = useState("");
-  const [assignedMembers, setAssignedMembers] = useState([]);
   const [newTag, setNewTag] = useState("");
   const [showNewTagForm, setShowNewTagForm] = useState(false);
   const selectedColumn = localStorage.getItem("selectedColumn") || "backlog";
+  const { updateDocument: updateTeam } = useFirestore("teams");
+  const { addSubDocument: addTask } = useFirestore("teams");
 
-
-  const tagOptions = teamDoc?.tags?.map((tag) => ({ value: tag, label: tag }));
-
+  
   const addNewTag = async (e) => {
     e.preventDefault();
     if (!newTag) return;
-    await updateTeam(userDoc.teamId, {
+    await updateTeam("1e2jbG3utoQR8KpNbddG", {
       tags: arrayUnion(newTag),
     });
+    setNewTag("");
+    setShowNewTagForm(false);
     toast({
       title: "Nova tag",
       description: `A tag "${newTag}" foi adicionada com sucesso.`,
     });
-    setNewTag("");
-    setShowNewTagForm(false);
   };
+
+
+  /* 
+  const { userDoc } = useUserContext();
+  const { users } = useUsersContext();
+
+
+
 
   const getColumn = (status) => {
     switch (status) {
@@ -158,7 +164,7 @@ export default function NewTaskDialog({ children /* open, setOpen */ }) {
               className="h-32 resize-none"
             />
           </div>
-          {/* <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2">
               <Label htmlFor="name">Tags</Label>
               <PlusCircledIcon
@@ -171,7 +177,7 @@ export default function NewTaskDialog({ children /* open, setOpen */ }) {
                   <Input
                     value={newTag}
                     className="h-6"
-                    placeholder="Nova tag..."
+                    placeholder="nova tag..."
                     onChange={(e) => setNewTag(e.target.value)}
                   />
                 </form>
@@ -182,7 +188,7 @@ export default function NewTaskDialog({ children /* open, setOpen */ }) {
               options={tagOptions}
               onChange={(options) => setSelectedTags(options)}
             />
-          </div> */}
+          </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="name">Data para conclusão</Label>
             <DatePickerWithPresets date={dueDate} setDate={setDueDate} />

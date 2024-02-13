@@ -15,6 +15,7 @@ import Loading from "./components/Loading";
 import Chat from "./components/Chat";
 import ChatButton from "./components/ChatButton";
 import { useCollection } from "./hooks/useCollection";
+import { Toaster } from "./shadcn/components/ui/toaster";
 
 // Uso com any
 
@@ -34,6 +35,7 @@ function App() {
 	return (
 		<ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
 			<div className="flex">
+				<Toaster/>
 				<BrowserRouter>
 					{user ? (
 						<>
