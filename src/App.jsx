@@ -8,6 +8,7 @@ import Profile from "./pages/Profile/Profile";
 import Projects from "./pages/Projects/projects";
 import { ThemeProvider } from "./Providers/theme-provider";
 import Login from "./pages/Login/login";
+import Tasks from "./pages/Tasks/Tasks";
 import Signup from "./pages/Signup/signup";
 import { useAuthContext } from "./hooks/useAuthContext.js";
 import Loading from "./components/Loading";
@@ -44,7 +45,7 @@ function App() {
 										path="/Profile"
 										element={<Profile rerender={rerender} setRerender={setRerender} />}
 									/>
-									<Route path="/Projects" element={<Projects />} />
+									<Route path="/tasks" element={<Tasks />} />
 									<Route path="/Home" element={<Home />} />
 								</Routes>
 							</div>
