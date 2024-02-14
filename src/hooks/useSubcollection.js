@@ -51,6 +51,7 @@ export const useSubcollection = (
         setError(null);
       },
       (error) => {
+        console.log("Erro na subcoleção ", subcoll);
         console.log(error);
         setError("Could not fetch the documents.");
       }

@@ -15,20 +15,26 @@ import getInitials from "../utils/getInitials";
 import { useFirestore } from "../hooks/useFirestore";
 import { ChevronLeftIcon, Cross1Icon } from "@radix-ui/react-icons";
 import { timestamp } from "../firebase/config";
+import { useUsersContext } from "../hooks/useUsersContext";
 
 export default function Chat({
 	selectedChat,
 	chats,
-	setChatIsOpen,
 	setSelectedChat,
-	users,
+	setChatIsOpen,
 }) {
 	const { user } = useAuthContext();
-	const { updateDocument: uptadeChat, addSubDocument: creatMessage, addDocument: createChat } = useFirestore("chats");
+	const { users } = useUsersContext();
+	const {
+		updateDocument: updateChat,
+		addDocument: createChat,
+		addSubDocument: createMessage,
+	} = useFirestore("chats");
 	const [messageContent, setMessageContent] = useState("");
 
 	const chat = chats.find((chat) => {
-		return chat?.id === selectedChat?.id;
+		console.log(selectedChat?.id);
+		return chat.id === selectedChat?.id;
 	});
 
 	const { documents: messages } = useSubcollection(
@@ -39,28 +45,30 @@ export default function Chat({
 		["createdAt", "asc"]
 	);
 
-	const sendMessage = async () => {
+	const sendMessage = async (e) => {
+		e.preventDefault();
 		if (messageContent === "") return;
-		let chatId
-		if(!chat?.id) {
-			const result = await createChat({
-				participants: [...selectedChat.participants]
-			})
+		let chatId;
 
-			chatId = result.payload
+		if (!chat?.id) {
+			const { payload } = await createChat({
+				participants: [...selectedChat.participants],
+			});
+			chatId = payload;
 		}
-		await creatMessage(chat?.id || chatId, "messages", {
+
+		await createMessage(chat?.id || chatId, "messages", {
 			author: user.uid,
 			createdAt: new Date(),
 			content: messageContent,
 		});
 
-		await uptadeChat(chat?.id || chatId, {
+		await updateChat(chat?.id || chatId, {
 			lastMessage: {
 				content: messageContent,
-				createdAt: timestamp
-			}
-		})
+				createdAt: timestamp,
+			},
+		});
 
 		setMessageContent("");
 	};
@@ -71,13 +79,11 @@ export default function Chat({
 	};
 
 	const openChat = (chat, userName) => {
-		console.log(chat)
 		setChatIsOpen(true);
 		setSelectedChat({
-			id: chat?.id,
+			id: chat.id,
 			recipient: userName,
 		});
-		//TODO: essa função irá abrir o chat com o usuario com o id userID
 	};
 
 	const formatMessageDate = (dateObj) => {
@@ -93,11 +99,8 @@ export default function Chat({
 			"sábado",
 		];
 
-		// Calcula a diferença entre o início do dia atual e o início do dia da mensagem em dias
-		const diffInDays = Math.floor(
-			(now.setHours(0, 0, 0, 0) - dateObj.setHours(0, 0, 0, 0)) /
-				dayInMilliseconds
-		);
+		// Calcula a diferença entre a data atual e a data passada em dias
+		const diffInDays = Math.floor((now - dateObj) / dayInMilliseconds);
 
 		// Se for o mesmo dia, retorna a hora
 		if (diffInDays === 0) {
@@ -107,13 +110,14 @@ export default function Chat({
 			});
 		}
 
-		// Se for ontem ou até 6 dias atrás, retorna "Ontem" ou o dia da semana
-		if (diffInDays >= 1 && diffInDays < 7) {
-			if (diffInDays === 1) {
-				return "Ontem";
-			} else {
-				return daysOfWeek[dateObj.getDay()];
-			}
+		// Se for o dia anterior, retorna "Ontem"
+		if (diffInDays === 1) {
+			return "Ontem";
+		}
+
+		// Se for entre 2 e 6 dias atrás, retorna o dia da semana
+		if (diffInDays >= 2 && diffInDays < 7) {
+			return daysOfWeek[dateObj.getDay()];
 		}
 
 		// Se for 7 dias atrás ou mais, retorna a data no formato DD/MM/AA
@@ -125,62 +129,63 @@ export default function Chat({
 	};
 
 	return (
-		<div className="fixed bottom-32 right-[248px] h-[500px] w-96 border border-foreground/10 bg-input/50 rounded-lg p-5 drop-shadow-2xl">
+		<div className="fixed bottom-24 right-5 sm:right-[248px] h-[500px] w-[350px] sm:w-96 border border-foreground/10 bg-input rounded-lg p-5 drop-shadow-2xl">
 			<div className="flex flex-col h-full">
 				<div className="flex items-center gap-3">
 					{selectedChat && (
-						<>
-							<Button
-								variant="icon"
-								size="icon"
-								onClick={() => setSelectedChat(null)}
-							>
-								<ChevronLeftIcon className="h-6 w-6" />
-							</Button>
-							<Avatar>
-								<AvatarImage src="" />
-								<AvatarFallback className="bg-primary/50">
-									{getInitials(selectedChat.recipient)}
-								</AvatarFallback>
-							</Avatar>
-						</>
+						<Button
+							variant="ghost"
+							size="icon"
+							onClick={() => setSelectedChat(null)}
+						>
+							<ChevronLeftIcon className="w-6 h-6" />
+						</Button>
 					)}
-					<p className={`${selectedChat ? "font-medium" : "font-medium text-lg"}`}>
+					{selectedChat && (
+						<Avatar>
+							<AvatarImage src="" />
+							<AvatarFallback className="bg-primary/50">
+								{getInitials(selectedChat.recipient)}
+							</AvatarFallback>
+						</Avatar>
+					)}
+					<p className={`${selectedChat ? "" : "text-lg"}`}>
 						{selectedChat?.recipient || "Conversas"}
 					</p>
 				</div>
 				<Button
 					variant="ghost"
-					size="icon"
 					className="absolute top-2 right-2"
 					onClick={closeChat}
+					size="icon"
 				>
 					<Cross1Icon />
 				</Button>
 				<Separator className="bg-foreground/10 my-4" />
 				<ScrollArea className="flex-grow">
 					{selectedChat
-						? (messages?.length && 
-							messages?.map((message) => (
-								<Message key={message.id} message={message} />
-						  ))) || (
+						? (messages?.length &&
+								messages?.map((message) => (
+									<Message key={message.id} message={message} />
+								))) || (
 								<p className="text-foreground/50 text-sm">
 									Não há mensagens para exibir.
 								</p>
 						  )
 						: chats?.map((chat) => {
 								const chatUser = users.find(
-									(u) => chat.participants.includes(u.id) && u.id !== user.uid
+									(u) => chat.participants.includes(u.id) && u.id !== users.uid
 								);
 								return (
 									<>
 										<div
-											role="button"
 											key={chat.id}
 											onClick={() => openChat(chat, chatUser.name)}
+											role="button"
+											className="relative"
 										>
-											<div className="flex gap-2.5 relative">
-												<Avatar>
+											<div className="flex gap-2.5">
+												<Avatar className="h-12 w-12">
 													<AvatarImage src="" />
 													<AvatarFallback className="bg-primary/50">
 														{getInitials(chatUser.name)}
@@ -199,23 +204,26 @@ export default function Chat({
 												</p>
 											</div>
 										</div>
-										<Separator className="bg-foreground/10 my-4" />
+										<Separator
+											key={chat.id}
+											className="bg-foreground/10 my-4"
+										/>
 									</>
 								);
 						  }) || (
 								<p className="text-foreground/50 text-sm">
-									Não há conversas para exibir
+									Não há conversas para exibir.
 								</p>
 						  )}
 				</ScrollArea>
-				<div className="flex gap-2.5">
+				<form onSubmit={sendMessage} className="flex gap-2.5">
 					<Input
 						type="text"
 						value={messageContent}
 						onChange={(e) => setMessageContent(e.target.value)}
 					/>
-					<Button onClick={sendMessage}>Enviar</Button>
-				</div>
+					<Button type="submit">Enviar</Button>
+				</form>
 			</div>
 		</div>
 	);

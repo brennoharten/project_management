@@ -2,14 +2,15 @@ import { Button } from "../shadcn/components/ui/button";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import {
+	CalendarIcon,
 	ChatBubbleIcon,
+	Cross2Icon,
 	DashboardIcon,
 	ExitIcon,
 	FileTextIcon,
+	InfoCircledIcon,
 	LightningBoltIcon,
 	PersonIcon,
-	CalendarIcon,
-	InfoCircledIcon,
 } from "@radix-ui/react-icons";
 import { useLogout } from "../hooks/useLogout";
 import Logo from "../components/Logo";
@@ -35,6 +36,7 @@ const userOptions = [
 		icon: <PersonIcon />,
 	},
 ];
+
 const projectOptions = [
 	{
 		route: "/",
@@ -57,106 +59,147 @@ const projectOptions = [
 		icon: <CalendarIcon />,
 	},
 ];
+
 const labelOptions = [
 	{
-		route: "/a",
+		value: "high",
 		name: "Alta Prioridade",
 		icon: <LabelSvg color="#f00" />,
 	},
 	{
-		route: "/b",
+		value: "medium",
 		name: "Média Prioridade",
 		icon: <LabelSvg color="orange" />,
 	},
 	{
-		route: "/c",
-		name: "Baixa prioridade",
+		name: "Baixa Prioridade",
 		icon: <LabelSvg color="#f7d372" />,
+		value: "low",
 	},
 	{
-		route: "/d",
-		name: "Em StandBy",
+		name: "Em Standby",
 		icon: <LabelSvg color="#5abb54" />,
+		value: "standby",
 	},
 ];
 
-export default function Sidebar(rerender) {
+export default function Sidebar({
+	rerender,
+	selectedPriority,
+	setSelectedPriority,
+}) {
 	const navigate = useNavigate();
-	const { logout, isPanding, error } = useLogout();
+	const { logout, error, isPending } = useLogout();
 	const { user } = useAuthContext();
 
+	const handleLogout = () => {
+		logout();
+	};
+
 	return (
-		<nav className="h-screen w-[250px] bg-accent border border-border">
-			<div className="p-5">
-				<Logo size="sm" />
-			</div>
-			<div className="flex p-5 gap-3">
-				<Avatar>
-					<AvatarImage src={user.photoURL}/>
-					<AvatarFallback className="bg-primary/50">{getInitials(user.displayName)}</AvatarFallback>
-				</Avatar>
-				<div>
-					<p className="font-medium">{user.displayName}</p>
-					<p className="text-muted-foreground/75 text-sm">Premium account</p>
+		<nav className="relative overflow-y-auto min-h-[calc(100vh_-_64px)] hidden sm:flex sm:flex-col sm:justify-between h-full w-[250px] bg-accent border border-border">
+			<div className="fixed max-h-full overflow-y-auto w-[250px] sm:flex-grow sm:flex sm:flex-col sm:justify-between">
+				<div className="p-5">
+					<Logo size="sm" />
 				</div>
-			</div>
+				<div className="flex gap-3 p-5">
+					<Avatar>
+						<AvatarImage src={user.photoURL} />
+						<AvatarFallback className="bg-primary/50">
+							{getInitials(user.displayName)}
+						</AvatarFallback>
+					</Avatar>
+					<div>
+						<p className="font-medium">{user.displayName}</p>
+						<p className="text-muted-foreground/75 text-sm">Premium account</p>
+					</div>
+				</div>
+				{userOptions.map((option) => (
+					<div
+						key={option.route}
+						role="button"
+						className="px-5 py-1.5 flex items-center gap-3"
+						onClick={() => navigate(option.route)}
+					>
+						{option.icon}
+						<p className="text-md">{option.name}</p>
+					</div>
+				))}
 
-			{userOptions.map((option) => (
-				<div
-					key={option.route}
-					role="button"
-					className="px-5 py-2.5 flex items-center gap-2"
-					onClick={() => navigate(option.route)}
-				>
-					{option.icon}
-					<p className="text-sm font-medium">{option.name}</p>
-				</div>
-			))}
-			<Separator className="my-4" />
+				<Separator className="my-3" />
 
-			<h2 className="font-semibold text-xl px-5 mb-5">Projetos</h2>
+				<h2 className="font-medium text-lg px-5 mb-2">Projetos</h2>
 
-			{projectOptions.map((option) => (
-				<div
-					key={option.route}
-					role="button"
-					className="px-5 py-2.5 flex items-center gap-2"
-					onClick={() => navigate(option.route)}
-				>
-					{option.icon}
-					<p className="text-sm font-medium">{option.name}</p>
+				{projectOptions.map((option) => (
+					<div
+						key={option.route}
+						role="button"
+						className="px-5 py-1.5 flex items-center gap-3"
+						onClick={() => navigate(option.route)}
+					>
+						{option.icon}
+						<p className="text-md">{option.name}</p>
+					</div>
+				))}
+
+				<Separator className="my-3" />
+
+				<h2 className="font-medium text-lg px-5 mb-2">Etiqueta</h2>
+
+				{labelOptions.map((option) => (
+					<div
+						key={option.value}
+						role="button"
+						className="px-5 py-1.5 flex items-center justify-between"
+					>
+						<div
+							className="flex items-center gap-3"
+							onClick={() => setSelectedPriority(option.value)}
+						>
+							{option.icon}
+							<p
+								className={`text-md/90 ${
+									selectedPriority === option.value ? "font-semibold" : ""
+								}`}
+							>
+								{option.name}
+							</p>
+						</div>
+						{option.value === selectedPriority && (
+							<Cross2Icon
+								role="button"
+								onClick={() => setSelectedPriority(null)}
+							/>
+						)}
+					</div>
+				))}
+
+				<Separator className="my-3" />
+
+				<div className="px-5">
+					{" "}
+					<Button
+						size="noPadding"
+						variant="ghost"
+						onClick={handleLogout}
+						className="opacity-50 py-2.5"
+					>
+						<InfoCircledIcon className="w-4 h-4 mr-2" />
+						Central de Ajuda
+					</Button>
+					<Button
+						size="noPadding"
+						variant="ghost"
+						onClick={handleLogout}
+						className="opacity-50 py-2.5"
+					>
+						<ExitIcon className="w-4 h-4 mr-2" />
+						Sair da conta
+					</Button>
+					<div className="py-3"></div>
 				</div>
-			))}
-			<Separator className="my-4" />
-			<h2 className="font-semibold text-xl px-5 mb-5">Tags</h2>
-			{labelOptions.map((option) => (
-				<div
-					key={option.route}
-					role="button"
-					className="px-5 py-2.5 flex items-center gap-2"
-					onClick={() => navigate(option.route)}
-				>
-					{option.icon}
-					<p className="text-sm font-medium">{option.name}</p>
-				</div>
-			))}
-			<Separator className="my-4" />
-			<div className="p-5">
-				<Button
-					size="noPadding"
-					variant="ghost"
-					onClick={logout}
-					className="opacity-50"
-				>
-					<InfoCircledIcon className="w-4 h-4 mr-2" />
-					Central de Ajuda
-				</Button>
-				<Button size="noPadding" variant="ghost" onClick={logout} className="opacity-50">
-					<ExitIcon className="w-4 h-4 mr-2" />
-					Sair da conta
-				</Button>
+				{rerender && <span className="hidden"></span>}
 			</div>
-			{rerender && <span className="hidden"></span>}
 		</nav>
 	);
 }

@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import Sidebar from "./components/Sidebar";
-import Membersbar from "./components/Membersbar";
+import MembersBar from "./components/Membersbar";
+import Topbar from "./components/Topbar";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home/home";
 import Profile from "./pages/Profile/Profile";
@@ -37,17 +38,19 @@ function App() {
 	const [chatIsOpen, setChatIsOpen] = useState(false);
 	const [selectedChat, setSelectedChat] = useState(null);
 	const [rerender, setRerender] = useState(false);
+	const [selectedPriority, setSelectedPriority] = useState(null);
 
-	const { documents: users } = useCollection("users");
-	const { documents: chats } = useCollection("chats");
+	const isMobile = useMediaQuery("(max-width: 640px)");
 
-	if (!authIsReady) {
-		return <Loading />;
-	}
+	useEffect(() => {
+		console.log(selectedPriority);
+	}, [selectedPriority]);
+
+	if (!authIsReady) return <Loading />;
 
 	return (
-		<ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-			<div className="flex">
+		<ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+			<div className="App flex flex-col sm:flex-row">
 				<Toaster />
 				<BrowserRouter>
 					{user ? (
@@ -56,12 +59,22 @@ function App() {
 								{(userDoc, chats) => (
 									<UsersProvider userDoc={userDoc}>
 										<>
-											<Sidebar rerender={rerender} />
-											<div className="flex-grow">
+											{isMobile ? (
+												<Topbar />
+											) : (
+												<div className="w-[250px] h-screen fixed top-0 left-0 overflow-y-auto">
+													<Sidebar
+														selectedPriority={selectedPriority}
+														setSelectedPriority={setSelectedPriority}
+														rerender={rerender}
+													/>
+												</div>
+											)}
+											<div className="mt-12 sm:mt-0 flex-grow sm:ml-[250px] sm:mr-[200px]">
 												<Routes>
 													<Route exact path="/" element={<Home />} />
 													<Route
-														path="/Profile"
+														path="/profile"
 														element={
 															<Profile
 																rerender={rerender}
@@ -69,23 +82,30 @@ function App() {
 															/>
 														}
 													/>
-													<Route path="/tasks" element={<Tasks />} />
-													<Route path="/Home" element={<Home />} />
+													<Route
+														path="/tasks"
+														element={
+															<Tasks selectedPriority={selectedPriority} />
+														}
+													/>
+													<Route path="*" element={<Home />} />
 												</Routes>
 											</div>
-											<Membersbar
-												users={users}
-												chats={chats}
-												setChatIsOpen={setChatIsOpen}
-												setSelectedChat={setSelectedChat}
-											/>
+											{!isMobile && (
+												<div className="w-[200px] h-screen fixed top-0 right-0 overflow-y-auto">
+													<MembersBar
+														chats={chats}
+														setSelectedChat={setSelectedChat}
+														setChatIsOpen={setChatIsOpen}
+													/>
+												</div>
+											)}
 											{chatIsOpen && (
 												<Chat
 													setSelectedChat={setSelectedChat}
 													setChatIsOpen={setChatIsOpen}
 													chats={chats}
 													selectedChat={selectedChat}
-													users={users}
 												/>
 											)}
 											<ChatButton
@@ -101,7 +121,7 @@ function App() {
 						<Routes>
 							<Route path="/login" element={<Login />} />
 							<Route path="/signup" element={<Signup />} />
-							<Route path="/*" element={<Signup />} />
+							<Route path="*" element={<Signup />} />
 						</Routes>
 					)}
 				</BrowserRouter>

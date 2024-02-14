@@ -15,9 +15,9 @@ import { useState } from "react";
 import { Textarea } from "../../shadcn/components/ui/textarea";
 import { DatePickerWithPresets } from "../../components/DatePickerWithPresets";
 import Select from "react-select";
+import { useFirestore } from "../../hooks/useFirestore";
 import { useDocument } from "../../hooks/useDocument";
 import { PlusCircledIcon } from "@radix-ui/react-icons";
-import { useFirestore } from "../../hooks/useFirestore";
 import { arrayUnion } from "firebase/firestore";
 import { useToast } from "../../shadcn/components/ui/use-toast";
 import { useUserContext } from "../../hooks/useUserContext";
@@ -31,42 +31,41 @@ const priorityOptions = [
 ];
 
 export default function NewTaskDialog({ children, open, setOpen }) {
+  const { addSubDocument: addTask } = useFirestore("teams");
+  const { toast } = useToast();
   const { userDoc } = useUserContext();
   const { users } = useUsersContext();
-  const [title, setTitle] = useState("");
-  const [dueDate, setDueDate] = useState(null);
-  const [description, setDescription] = useState("");
   const { document: teamDoc } = useDocument("teams", userDoc.teamId);
+  const { updateDocument: updateTeam } = useFirestore("teams");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [dueDate, setDueDate] = useState(null);
+  const [priority, setPriority] = useState("");
   const [assignedMembers, setAssignedMembers] = useState([]);
+  const [newTag, setNewTag] = useState("");
+  const [showNewTagForm, setShowNewTagForm] = useState(false);
+  const selectedColumn = localStorage.getItem("selectedColumn") || "backlog";
 
   const userOptions = users?.map((user) => ({
     value: user.id,
     label: user.name,
   }));
-  
-  const { toast } = useToast();
-  const tagOptions = teamDoc?.tags?.map((tag) => ({ value: tag, label: tag }));
-  const [selectedTags, setSelectedTags] = useState([]);
-  const [priority, setPriority] = useState("");
-  const [newTag, setNewTag] = useState("");
-  const [showNewTagForm, setShowNewTagForm] = useState(false);
-  const selectedColumn = localStorage.getItem("selectedColumn") || "backlog";
-  const { updateDocument: updateTeam } = useFirestore("teams");
-  const { addSubDocument: addTask } = useFirestore("teams");
 
-  
+  const tagOptions = teamDoc?.tags?.map((tag) => ({ value: tag, label: tag }));
+
   const addNewTag = async (e) => {
     e.preventDefault();
     if (!newTag) return;
-    await updateTeam("1e2jbG3utoQR8KpNbddG", {
+    await updateTeam(userDoc.teamId, {
       tags: arrayUnion(newTag),
     });
-    setNewTag("");
-    setShowNewTagForm(false);
     toast({
       title: "Nova tag",
       description: `A tag "${newTag}" foi adicionada com sucesso.`,
     });
+    setNewTag("");
+    setShowNewTagForm(false);
   };
 
   const getColumn = (status) => {
@@ -167,7 +166,7 @@ export default function NewTaskDialog({ children, open, setOpen }) {
                   <Input
                     value={newTag}
                     className="h-6"
-                    placeholder="nova tag..."
+                    placeholder="Nova tag..."
                     onChange={(e) => setNewTag(e.target.value)}
                   />
                 </form>
@@ -198,7 +197,7 @@ export default function NewTaskDialog({ children, open, setOpen }) {
               onChange={(options) => setAssignedMembers(options)}
             />
           </div>
-        </div> 
+        </div>
         <DialogFooter>
           <Button type="submit" onClick={createTask}>
             Adicionar tarefa

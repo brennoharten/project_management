@@ -11,9 +11,11 @@ import uploadToStorage from "../../utils/uploadToStorage";
 import { updateProfile } from "firebase/auth";
 import { auth } from "../../firebase/config";
 import { Input } from "../../shadcn/components/ui/input";
+import { useFirestore } from "../../hooks/useFirestore";
 
 export default function Profile({ rerender, setRerender }) {
   const { user } = useAuthContext();
+  const { updateDocument: updateUser } = useFirestore("users");
   const inputRef = useRef();
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
@@ -49,9 +51,10 @@ export default function Profile({ rerender, setRerender }) {
     updateProfile(auth.currentUser, {
       photoURL: downloadUrl,
     })
-      .then(() => {
-        // Recarregue o usuário para atualizar as informações
-        console.log("deu bom");
+      .then(async () => {
+        await updateUser(user.uid, {
+          photoURL: downloadUrl,
+        });
 
         return auth.currentUser.reload();
       })
