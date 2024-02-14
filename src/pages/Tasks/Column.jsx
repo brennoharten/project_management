@@ -11,7 +11,7 @@ export default function Column({
 	showNewTaskDialog,
 	setShowNewTaskDialog,
 }) {
-  const [selectedColumn, setSelectedColumn] = useState("");
+	const [selectedColumn, setSelectedColumn] = useState("");
 
 	const getColumnName = (id) => {
 		switch (id) {
@@ -28,9 +28,9 @@ export default function Column({
 		}
 	};
 
-  useEffect(() => {
-    console.log(selectedColumn);
-  }, [selectedColumn]);
+	useEffect(() => {
+		console.log(selectedColumn);
+	}, [selectedColumn]);
 
 	return (
 		<div className="fake-container sm:w-1/4 bg-secondary/50 p-5 border border-border rounded-xl flex flex-col">
@@ -57,27 +57,11 @@ export default function Column({
 							)}
 							{provided.placeholder}
 							<NewTaskDialog
-                /* open={showNewTaskDialog}
-                setOpen={setShowNewTaskDialog}
-                selectedColumn={selectedColumn} */
-              >
-                <Button
-                  size="xl"
-                  variant="outline"
-                  className="shadow-sm"
-                  onClick={() => {
-                    localStorage.setItem(
-                      "selectedColumn",
-                      getColumnName(column.id)
-                    );
-                    /* setShowNewTaskDialog(true); */
-                  }}
-                >
-                  <PlusIcon className="h-5 w-5 mr-2" />
-                  Adicionar tarefa
-                </Button>
-              </NewTaskDialog>
-							{/* <Button
+								open={showNewTaskDialog}
+								setOpen={setShowNewTaskDialog}
+								selectedColumn={selectedColumn}
+							></NewTaskDialog>
+							<Button
 								size="xl"
 								variant="outline"
 								className="shadow-sm"
@@ -91,7 +75,7 @@ export default function Column({
 							>
 								<PlusIcon className="h-5 w-5 mr-2" />
 								Adicionar tarefa
-							</Button> */}
+							</Button>
 						</div>
 					);
 				}}

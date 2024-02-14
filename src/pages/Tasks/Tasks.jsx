@@ -18,19 +18,19 @@ import {
 import { FilterIcon } from "lucide-react";
 import KanbanBoard from "./KanbanBoard";
 import Select from "react-select";
-//import { useUserContext } from "../../hooks/useUserContext";
-//import { useDocument } from "../../hooks/useDocument";
+import { useUserContext } from "../../hooks/useUserContext";
+import { useDocument } from "../../hooks/useDocument";
 import { Badge } from "../../shadcn/components/ui/badge";
-//import { useUsersContext } from "../../hooks/useUsersContext";
+import { useUsersContext } from "../../hooks/useUsersContext";
 
 export default function Tasks({ selectedPriority }) {
+	const { userDoc } = useUserContext();
+	const { users } = useUsersContext();
 	const [showNewTaskDialog, setShowNewTaskDialog] = useState(false);
 	const [search, setSearch] = useState("");
 	const [selectedTag, setSelectedTag] = useState(null);
 	const [selectedMember, setSelectedMember] = useState(null);
-	/* const { document: teamDoc } = useDocument("teams", userDoc.teamId);
-  const { userDoc } = useUserContext();
-  const { users } = useUsersContext(); */
+	const { document: teamDoc } = useDocument("teams", userDoc.teamId);
 
 	return (
 		<div className="p-5 sm:p-5">
@@ -76,7 +76,7 @@ export default function Tasks({ selectedPriority }) {
 						<DropdownMenuContent>
 							<DropdownMenuLabel>Tags</DropdownMenuLabel>
 							<DropdownMenuSeparator />
-							{/* {teamDoc?.tags?.map((tag) => (
+							{teamDoc?.tags?.map((tag) => (
 								<DropdownMenuItem
 									className={`${tag === selectedTag ? "bg-primary/50" : ""}`}
 									key={tag}
@@ -84,7 +84,7 @@ export default function Tasks({ selectedPriority }) {
 								>
 									{tag}
 								</DropdownMenuItem>
-							))} */}
+							))}
 						</DropdownMenuContent>
 					</DropdownMenu>
 					{selectedTag && (
@@ -113,7 +113,7 @@ export default function Tasks({ selectedPriority }) {
 						<DropdownMenuContent>
 							<DropdownMenuLabel>Membros</DropdownMenuLabel>
 							<DropdownMenuSeparator />
-							{/* {users?.map((u) => (
+							{users?.map((u) => (
 								<DropdownMenuItem
 									className={`${
 										u.id === selectedMember ? "bg-primary/50" : ""
@@ -123,12 +123,12 @@ export default function Tasks({ selectedPriority }) {
 								>
 									{u.name}
 								</DropdownMenuItem>
-							))} */}
+							))}
 						</DropdownMenuContent>
 					</DropdownMenu>
 					{selectedMember && (
 						<Badge className="cursor-default">
-							{/* {users.find((u) => u.id === selectedMember)?.name} */}
+							{users.find((u) => u.id === selectedMember)?.name}
 							<Cross2Icon
 								onClick={() => setSelectedMember(null)}
 								role="button"
@@ -139,13 +139,13 @@ export default function Tasks({ selectedPriority }) {
 				</div>
 			</div>
 			<KanbanBoard
-        /* search={search}
-        selectedTag={selectedTag}
-        selectedPriority={selectedPriority}
-        selectedMember={selectedMember}
-        showNewTaskDialog={showNewTaskDialog}
-        setShowNewTaskDialog={setShowNewTaskDialog} */
-      />
+				search={search}
+				selectedTag={selectedTag}
+				selectedPriority={selectedPriority}
+				selectedMember={selectedMember}
+				showNewTaskDialog={showNewTaskDialog}
+				setShowNewTaskDialog={setShowNewTaskDialog}
+			/>
 		</div>
 	);
 }

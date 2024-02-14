@@ -15,7 +15,6 @@ import { useState } from "react";
 import { Textarea } from "../../shadcn/components/ui/textarea";
 import { DatePickerWithPresets } from "../../components/DatePickerWithPresets";
 import Select from "react-select";
-import { useCollection } from "../../hooks/useCollection";
 import { useDocument } from "../../hooks/useDocument";
 import { PlusCircledIcon } from "@radix-ui/react-icons";
 import { useFirestore } from "../../hooks/useFirestore";
@@ -31,14 +30,13 @@ const priorityOptions = [
   { value: "standby", label: "Em standby" },
 ];
 
-export default function NewTaskDialog({ children /* open, setOpen */ }) {
+export default function NewTaskDialog({ children, open, setOpen }) {
   const { userDoc } = useUserContext();
   const { users } = useUsersContext();
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState(null);
   const [description, setDescription] = useState("");
   const { document: teamDoc } = useDocument("teams", userDoc.teamId);
-  //const { document: teamDoc } = useDocument("teams", "1e2jbG3utoQR8KpNbddG");
   const [assignedMembers, setAssignedMembers] = useState([]);
 
   const userOptions = users?.map((user) => ({
@@ -70,13 +68,6 @@ export default function NewTaskDialog({ children /* open, setOpen */ }) {
       description: `A tag "${newTag}" foi adicionada com sucesso.`,
     });
   };
-
-
-  
-  /* 
-
-
-
 
   const getColumn = (status) => {
     switch (status) {
@@ -132,10 +123,10 @@ export default function NewTaskDialog({ children /* open, setOpen */ }) {
     setDueDate(null);
     setAssignedMembers([]);
     setOpen(false);
-  }; */
+  };
 
   return (
-    <Dialog /* open={open} onOpenChange={setOpen} */>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -209,7 +200,7 @@ export default function NewTaskDialog({ children /* open, setOpen */ }) {
           </div>
         </div> 
         <DialogFooter>
-          <Button type="submit" /* onClick={createTask} */>
+          <Button type="submit" onClick={createTask}>
             Adicionar tarefa
           </Button>
         </DialogFooter>

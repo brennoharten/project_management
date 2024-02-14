@@ -1,119 +1,235 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DragDropContext } from "react-beautiful-dnd";
 import Column from "./Column";
+import { useFirestore } from "../../hooks/useFirestore";
+import { useUserContext } from "../../hooks/useUserContext";
+import { useDocument } from "../../hooks/useDocument";
+import { useSubcollection } from "../../hooks/useSubcollection";
 
 const initialData = {
-  tasks: {
-    "task-1": { id: "task-1", content: "Dominar o mundo" },
-    "task-2": { id: "task-2", content: "Roubar a Taça do Mundial de 51" },
-    "task-3": { id: "task-3", content: "Tomar um frapuccino com Elon Musk" },
-    "task-4": { id: "task-4", content: "Dançar Ragatanga" },
-  },
-  columns: {
-    "column-1": {
-      id: "column-1",
-      title: "Backlog",
-      taskIds: ["task-1", "task-2", "task-3", "task-4"],
-    },
-    "column-2": {
-      id: "column-2",
-      title: "A fazer",
-      taskIds: [],
-    },
-    "column-3": {
-      id: "column-3",
-      title: "Em progresso",
-      taskIds: [],
-    },
-    "column-4": {
-      id: "column-4",
-      title: "Em revisão",
-      taskIds: [],
-    },
-  },
-  columnOrder: ["column-1", "column-2", "column-3", "column-4"],
+	tasks: {},
+	columns: {
+		"column-1": {
+			id: "column-1",
+			title: "Backlog",
+			taskIds: [],
+		},
+		"column-2": { id: "column-2", title: "A fazer", taskIds: [] },
+		"column-3": { id: "column-3", title: "Em progresso", taskIds: [] },
+		"column-4": { id: "column-4", title: "Em revisão", taskIds: [] },
+	},
+	columnOrder: ["column-1", "column-2", "column-3", "column-4"],
 };
 
-export default function KanbanBoard() {
-  const [state, setState] = useState(initialData);
+export default function KanbanBoard({
+	showNewTaskDialog,
+	setShowNewTaskDialog,
+	search,
+	selectedTag,
+	selectedMember,
+	selectedPriority,
+}) {
+	const { updateDocument: updateTeam, updateSubDocument: updateTask } =
+		useFirestore("teams");
+	const { userDoc } = useUserContext();
 
-  const onDragEnd = (result) => {
-    const { destination, source, draggableId } = result;
+	const { document: teamDoc } = useDocument("teams", userDoc.teamId);
 
-    if (!destination) {
-      return;
-    }
+	const { documents: tasks } = useSubcollection(
+		"teams",
+		userDoc.teamId,
+		"tasks"
+	);
 
-    if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
-    ) {
-      return;
-    }
+	const [state, setState] = useState(initialData);
 
-    const start = state.columns[source.droppableId];
-    const finish = state.columns[destination.droppableId];
+	const getNewStatus = (title) => {
+		switch (title) {
+			case "Backlog":
+				return "backlog";
+			case "A fazer":
+				return "todo";
+			case "Em progresso":
+				return "in_progress";
+			case "Em revisão":
+				return "in_review";
+			default:
+				return "backlog";
+		}
+	};
 
-    if (start === finish) {
-      const newTasksIds = Array.from(start.taskIds);
-      newTasksIds.splice(source.index, 1);
-      newTasksIds.splice(destination.index, 0, draggableId);
+	useEffect(() => {
+    if (tasks && teamDoc) {
+			// Transforma o array em um objeto de tarefas
+			const tasksObject = tasks?.reduce((acc, task) => {
+				acc[task.id] = task;
+				return acc;
+			}, {});
 
-      const newColumn = {
-        ...start,
-        taskIds: newTasksIds,
-      };
+			const columnsTaskIds = {
+				Backlog: [...teamDoc["column-1"]],
+				"A fazer": [...teamDoc["column-2"]],
+				"Em progresso": [...teamDoc["column-3"]],
+				"Em revisão": [...teamDoc["column-4"]],
+			};
 
-      const newState = {
-        ...state,
-        columns: {
-          ...state.columns,
-          [newColumn.id]: newColumn,
-        },
-      };
+			const newState = {
+				tasks: tasksObject,
+				columns: {
+					"column-1": {
+						...initialData.columns["column-1"],
+						taskIds: columnsTaskIds["Backlog"],
+					},
+					"column-2": {
+						...initialData.columns["column-2"],
+						taskIds: columnsTaskIds["A fazer"],
+					},
+					"column-3": {
+						...initialData.columns["column-3"],
+						taskIds: columnsTaskIds["Em progresso"],
+					},
+					"column-4": {
+						...initialData.columns["column-4"],
+						taskIds: columnsTaskIds["Em revisão"],
+					},
+				},
+				columnOrder: initialData.columnOrder,
+			};
+			setState(newState);
+		}
+		console.log(tasks);
+	}, [tasks, teamDoc]);
 
-      setState(newState);
-    } else {
-      const startTaskIds = Array.from(start.taskIds);
-      startTaskIds.splice(source.index, 1);
+	const onDragEnd = async (result) => {
+		const { destination, source, draggableId } = result;
 
-      const newStart = {
-        ...start,
-        taskIds: startTaskIds,
-      };
+		if (!destination) return;
 
-      const finishTaskIds = Array.from(finish.taskIds);
-      finishTaskIds.splice(destination.index, 0, draggableId);
-      const newFinish = {
-        ...finish,
-        taskIds: finishTaskIds,
-      };
+		if (
+			destination.droppableId === source.droppableId &&
+			destination.index === source.index
+		) {
+			return;
+		}
 
-      const newState = {
-        ...state,
-        columns: {
-          ...state.columns,
-          [newStart.id]: newStart,
-          [newFinish.id]: newFinish,
-        },
-      };
+		const start = state.columns[source.droppableId];
+		const finish = state.columns[destination.droppableId];
 
-      setState(newState);
-    }
-  };
+		if (destination.droppableId === source.droppableId) {
+			const column = state.columns[source.droppableId];
+			const newTaskIds = Array.from(column.taskIds);
+			newTaskIds.splice(source.index, 1);
+			newTaskIds.splice(destination.index, 0, draggableId);
 
-  return (
-    <div className="mt-10">
-      <DragDropContext onDragEnd={onDragEnd}>
-        <div className="flex gap-5">
-          {state.columnOrder.map((columnId) => {
-            const column = state.columns[columnId];
-            const tasks = column.taskIds.map((taskId) => state.tasks[taskId]);
+			await updateTeam(userDoc.teamId, {
+				[source.droppableId]: newTaskIds,
+			});
 
-            return <Column key={column.id} column={column} tasks={tasks} />;
-          })}
-        </div>
-      </DragDropContext>
-    </div>
-  );
+			const newColumn = {
+				...column,
+				taskIds: newTaskIds,
+			};
+
+			const newState = {
+				...state,
+				columns: {
+					...state.columns,
+					[newColumn.id]: newColumn,
+				},
+			};
+
+			setState(newState);
+		} else {
+			const newStartTaskIds = Array.from(start.taskIds);
+			newStartTaskIds.splice(source.index, 1);
+
+			const movedTask = state.tasks[draggableId];
+
+			const updatedTask = {
+				...movedTask,
+				status: getNewStatus(finish.title),
+			};
+
+			const newTasks = {
+				...state.tasks,
+				[updatedTask.id]: updatedTask,
+			};
+
+			const newStart = {
+				...start,
+				taskIds: newStartTaskIds,
+			};
+
+			const newFinishTaskIds = Array.from(finish.taskIds);
+			newFinishTaskIds.splice(destination.index, 0, draggableId);
+
+			const newFinish = {
+				...finish,
+				taskIds: newFinishTaskIds,
+			};
+
+			await updateTeam(userDoc.teamId, {
+				[source.droppableId]: newStartTaskIds,
+				[destination.droppableId]: newFinishTaskIds,
+			});
+
+			const newState = {
+				...state,
+				tasks: newTasks,
+				columns: {
+					...state.columns,
+					[newStart.id]: newStart,
+					[newFinish.id]: newFinish,
+				},
+			};
+
+			await updateTask(userDoc.teamId, "tasks", updatedTask.id, {
+				status: getNewStatus(finish.title),
+			});
+
+			setState(newState);
+		}
+	};
+
+	return (
+		<DragDropContext onDragEnd={onDragEnd}>
+			<div className="mt-10 flex flex-col sm:flex-row gap-5">
+				{state.columnOrder.map((columnId) => {
+					const column = state.columns[columnId];
+					const tasks = column.taskIds.map((taskId) => state.tasks[taskId]);
+					const filteredTasks = tasks.filter((task) => {
+						let shouldReturnTrue = true;
+
+						if (selectedTag) {
+							shouldReturnTrue = task.tags.includes(selectedTag);
+						}
+
+						if (selectedMember) {
+							shouldReturnTrue = task.assignedMembers.includes(selectedMember);
+						}
+
+						if (selectedPriority) {
+							shouldReturnTrue = task.priority === selectedPriority;
+						}
+
+						return (
+							shouldReturnTrue &&
+							(task?.title.toLowerCase().includes(search.toLowerCase()) ||
+								task?.description.toLowerCase().includes(search.toLowerCase()))
+						);
+					});
+
+					return (
+						<Column
+							showNewTaskDialog={showNewTaskDialog}
+							setShowNewTaskDialog={setShowNewTaskDialog}
+							key={columnId}
+							column={column}
+							tasks={filteredTasks}
+						/>
+					);
+				})}
+			</div>
+		</DragDropContext>
+	);
 }
