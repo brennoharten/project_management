@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import Loading from "./Loading";
 import { Skeleton } from "../shadcn/components/ui/skeleton";
 import { useAuthContext } from "../hooks/useAuthContext";
+import { useUsersContext } from "../hooks/useUsersContext";
 
 function MemberSkeleton() {
 	return (
@@ -13,8 +14,9 @@ function MemberSkeleton() {
 	);
 }
 
-export default function Membersbar({ chats, setChatIsOpen, setSelectedChat, users }) {
+export default function Membersbar({ chats, setChatIsOpen, setSelectedChat }) {
 	const { user } = useAuthContext();
+	const { users } = useUsersContext();
 
 	const openChat = (userId, userName) => {
 		const chat = chats.find(
@@ -26,7 +28,7 @@ export default function Membersbar({ chats, setChatIsOpen, setSelectedChat, user
 		setSelectedChat({
 			id: chat?.id,
 			recipient: userName,
-			participants:  [userId, user.uid]
+			participants: [userId, user.uid],
 		});
 		//TODO: essa função irá abrir o chat com o usuario com o id userID
 	};
@@ -49,21 +51,23 @@ export default function Membersbar({ chats, setChatIsOpen, setSelectedChat, user
 		<aside className="h-screen w-[200px] border border-border p-5">
 			<h2 className="font-medium text-lg mb-5">Membros</h2>
 			{sortedUsers
-				? sortedUsers.filter(u => u.id !== user.uid).map((user) => (
-						<div
-							key={user.id}
-							className="flex items-center gap-2 text-sm py-2.5"
-							role="button"
-							onClick={() => openChat(user.id, user.name)}
-						>
+				? sortedUsers
+						.filter((u) => u.id !== user.uid)
+						.map((user) => (
 							<div
-								className={`${
-									user.online ? "bg-green-500" : "bg-red-500"
-								} w-2 h-2 rounded-full`}
-							/>
-							<p className="font-medium">{user.name}</p>
-						</div>
-				  ))
+								key={user.id}
+								className="flex items-center gap-2 text-sm py-2.5"
+								role="button"
+								onClick={() => openChat(user.id, user.name)}
+							>
+								<div
+									className={`${
+										user.online ? "bg-green-500" : "bg-red-500"
+									} w-2 h-2 rounded-full`}
+								/>
+								<p className="font-medium">{user.name}</p>
+							</div>
+						))
 				: [...Array(quantity)].map((_, index) => (
 						<MemberSkeleton key={index} />
 				  ))}

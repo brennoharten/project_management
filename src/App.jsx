@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 import Sidebar from "./components/Sidebar";
-import MembersBar from "./components/Membersbar";
+import Membersbar from "./components/Membersbar";
 import Topbar from "./components/Topbar";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home/home";
@@ -38,6 +38,7 @@ function App() {
 	const [chatIsOpen, setChatIsOpen] = useState(false);
 	const [selectedChat, setSelectedChat] = useState(null);
 	const [rerender, setRerender] = useState(false);
+
 	const [selectedPriority, setSelectedPriority] = useState(null);
 
 	const isMobile = useMediaQuery("(max-width: 640px)");
@@ -46,11 +47,13 @@ function App() {
 		console.log(selectedPriority);
 	}, [selectedPriority]);
 
-	if (!authIsReady) return <Loading />;
+	if (!authIsReady) {
+		return <Loading />;
+	}
 
 	return (
-		<ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-			<div className="App flex flex-col sm:flex-row">
+		<ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+			<div className="flex">
 				<Toaster />
 				<BrowserRouter>
 					{user ? (
@@ -93,7 +96,7 @@ function App() {
 											</div>
 											{!isMobile && (
 												<div className="w-[200px] h-screen fixed top-0 right-0 overflow-y-auto">
-													<MembersBar
+													<Membersbar
 														chats={chats}
 														setSelectedChat={setSelectedChat}
 														setChatIsOpen={setChatIsOpen}
@@ -121,7 +124,7 @@ function App() {
 						<Routes>
 							<Route path="/login" element={<Login />} />
 							<Route path="/signup" element={<Signup />} />
-							<Route path="*" element={<Signup />} />
+							<Route path="/*" element={<Signup />} />
 						</Routes>
 					)}
 				</BrowserRouter>
